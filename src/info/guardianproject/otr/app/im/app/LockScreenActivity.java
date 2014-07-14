@@ -30,6 +30,9 @@ import android.widget.ViewFlipper;
 
 import com.actionbarsherlock.app.SherlockActivity;
 
+import jni.PrivateData;
+import jni.PrivateDataHandler;
+
 public class LockScreenActivity extends SherlockActivity implements ICacheWordSubscriber {
     private static final String TAG = "LockScreenActivity";
 
@@ -50,11 +53,17 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     private ImApp mApp;
     private Button mBtnCreate;
     private Button mBtnSkip;
-    
+
+    /* Added by Lucia */
+    private Button mNewPassphraseBtn;
+    private Button mConfirmNewPassphraseBtn;
+    private PrivateDataHandler mNewPassphraseHandler = PrivateData.add(new String(""));
+    private PrivateDataHandler mConfirmPassphraseHandler = PrivateData.add(new String(""));
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Log.d("LUCIA", "LockScreenActivity.onCreate()");
         super.onCreate(savedInstanceState);
         
         mApp = (ImApp)getApplication();
@@ -74,12 +83,39 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         mEnterPassphrase = (EditText) findViewById(R.id.editEnterPassphrase);
         
         mNewPassphrase = (EditText) findViewById(R.id.editNewPassphrase);
+        /* Added by Lucia */
+        mNewPassphraseBtn = (Button) findViewById(R.id.editNewPassphraseBtn);
+        mNewPassphraseBtn.setOnClickListener(new OnClickListener () {
+            @Override
+            public void onClick(View v) {
+              mNewPassphraseHandler = PrivateData.
+                      add(mNewPassphrase.getText().toString());
+              mNewPassphrase.setText(mNewPassphraseHandler.stringHashCode());
+            }
+        });
+        /* End of Added by Lucia */
+        
         mConfirmNewPassphrase = (EditText) findViewById(R.id.editConfirmNewPassphrase);
+        /* Added by Lucia */
+        mConfirmNewPassphraseBtn = (Button) findViewById(R.id.editConfirmNewPassphraseBtn);
+        mConfirmNewPassphraseBtn.setOnClickListener(new OnClickListener () {
+
+            @Override
+            public void onClick(View v) {
+                mConfirmPassphraseHandler = PrivateData.
+                        add(mConfirmNewPassphrase.getText().toString());
+                mConfirmNewPassphrase.setText(mConfirmPassphraseHandler.stringHashCode());
+            }
+        });
+        /* End of Added by Lucia */
         ViewFlipper vf = (ViewFlipper) findViewById(R.id.viewFlipper1);
         LinearLayout flipView1 = (LinearLayout) findViewById(R.id.flipView1);
         LinearLayout flipView2 = (LinearLayout) findViewById(R.id.flipView2);
 
-        mSlider = new TwoViewSlider(vf, flipView1, flipView2, mNewPassphrase, mConfirmNewPassphrase);
+        /* View Arrays added by Lucia */
+        View[] v1 = {mNewPassphrase, mNewPassphraseBtn};
+        View[] v2 = {mConfirmNewPassphrase, mConfirmNewPassphraseBtn};
+        mSlider = new TwoViewSlider(vf, flipView1, flipView2, v1, v2);
     }
 
     @Override
@@ -108,9 +144,15 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         //do nothing!
     }
 
+    /*
     private boolean newEqualsConfirmation() {
         return mNewPassphrase.getText().toString()
                 .equals(mConfirmNewPassphrase.getText().toString());
+    }
+    */
+    private boolean newEqualsConfirmation() {
+        return PrivateData.
+                LockScreenActivity$newEqualsConfirmation(mNewPassphraseHandler, mConfirmPassphraseHandler);
     }
 
     private void showValidationError() {
@@ -130,18 +172,38 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         mConfirmNewPassphrase.getEditableText().clear();
     }
 
+    /*
     private boolean isPasswordValid() {
         return validatePassword(mNewPassphrase.getText().toString().toCharArray());
     }
+    */
+    private boolean isPasswordValid() {
+        PrivateDataHandler newHandler = PrivateData.
+                LockScreenActivity$isPasswordValid(mNewPassphraseHandler);
+        return validatePassword(newHandler);
+    }
 
+    /*
     private boolean isPasswordFieldEmpty() {
         return mNewPassphrase.getText().toString().length() == 0;
     }
-
+     */
+    private boolean isPasswordFieldEmpty() {
+        return PrivateData.LockScreenActivity$isPasswordFieldEmpty(
+                mNewPassphraseHandler);
+    }
+    
+    /*
     private boolean isConfirmationFieldEmpty() {
         return mConfirmNewPassphrase.getText().toString().length() == 0;
     }
-
+     */
+    private boolean isConfirmationFieldEmpty() {
+        return PrivateData.LockScreenActivity$isConfirmationFieldEmpty(
+                mConfirmPassphraseHandler);
+    }
+    
+    /*
     private void initializeWithPassphrase() {
         try {
             String passphrase = mNewPassphrase.getText().toString();
@@ -155,6 +217,29 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
                 }
             } else {
                 mCacheWord.setPassphrase(passphrase.toCharArray());
+            }
+        } catch (GeneralSecurityException e) {
+            // TODO initialization failed
+            Log.e(TAG, "Cacheword pass initialization failed: " + e.getMessage());
+        }
+    }
+    */
+    private void initializeWithPassphrase() {
+        try {
+            PrivateDataHandler passphrase = mNewPassphraseHandler;
+            if (PrivateData.
+                    LockScreenActivity$initializeWithPassphrase1(passphrase)) {
+                // Create DB with empty passphrase
+                if (Imps.setEmptyPassphrase(this, false)) {
+                    // Simulate cacheword opening
+                    onCacheWordOpened();
+                }  else {
+                    // TODO failed
+                }   
+            } else {
+                PrivateDataHandler handler = PrivateData.
+                        LockScreenActivity$initializeWithPassphrase2(passphrase);
+                mCacheWord.setPassphrase((char[])handler.getData());
             }
         } catch (GeneralSecurityException e) {
             // TODO initialization failed
@@ -293,6 +378,7 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         });
     }
 
+    /*
     private boolean validatePassword(char[] pass)
     {
 
@@ -305,6 +391,17 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
       
         return true;
     }
+    */
+    private boolean validatePassword(PrivateDataHandler handler)
+    {
+        if (PrivateData.
+                LockScreenActivity$validatePassword(handler, MIN_PASS_LENGTH))
+        {
+            mPasswordError = getString(R.string.pass_err_length);
+            return false;
+        }
+        return true;
+    }
 
     public class TwoViewSlider {
 
@@ -312,15 +409,15 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         private ViewFlipper flipper;
         private LinearLayout container1;
         private LinearLayout container2;
-        private View firstView;
-        private View secondView;
+        private View[] firstView;
+        private View[] secondView;
         private Animation pushRightIn;
         private Animation pushRightOut;
         private Animation pushLeftIn;
         private Animation pushLeftOut;
 
         public TwoViewSlider(ViewFlipper flipper, LinearLayout container1, LinearLayout container2,
-                View view1, View view2) {
+                View[] view1, View[] view2) {
             this.flipper = flipper;
             this.container1 = container1;
             this.container2 = container2;
@@ -356,11 +453,13 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
             if (firstIsShown) {
                 firstIsShown = false;
                 container2.removeAllViews();
-                container2.addView(secondView);
+                for (View v : secondView)
+                    container2.addView(v);
             } else {
                 firstIsShown = true;
                 container1.removeAllViews();
-                container1.addView(firstView);
+                for (View v : firstView)
+                    container1.addView(v);
             }
             flipper.showNext();
         }
@@ -409,6 +508,4 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
            // LockScreenActivity.this.overridePendingTransition(0, 0);
         }
     }
-    
-
 }

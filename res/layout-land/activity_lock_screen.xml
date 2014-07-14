@@ -50,7 +50,15 @@
                             android:inputType="textPassword" 
                             
                             />
-                        
+						<Button
+                            android:id="@+id/editNewPassphraseBtn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:hint="New Passphrase via VK"
+                             
+                            />                        
                         
                
          
@@ -65,6 +73,14 @@
                         >
 
                         <EditText
+                            android:id="@+id/editConfirmNewPassphrase"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:hint="@string/lock_screen_passphrase_not_set_confirm"
+                            android:inputType="textPassword" />
+                        <Button
                             android:id="@+id/editConfirmNewPassphrase"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -142,3 +158,4 @@
     </LinearLayout>
 
 </LinearLayout>
+
