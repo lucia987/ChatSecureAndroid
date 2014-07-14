@@ -239,7 +239,7 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
             } else {
                 PrivateDataHandler handler = PrivateData.
                         LockScreenActivity$initializeWithPassphrase2(passphrase);
-                mCacheWord.setPassphrase((char[])handler.getData());
+                mCacheWord.setPassphrase(handler);
             }
         } catch (GeneralSecurityException e) {
             // TODO initialization failed
