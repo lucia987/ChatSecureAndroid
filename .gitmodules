@@ -13,9 +13,6 @@
 [submodule "external/SlidingMenu"]
 	path = external/SlidingMenu
 	url = https://github.com/jfeinstein10/SlidingMenu.git
-[submodule "external/cacheword"]
-	path = external/cacheword
-	url = https://github.com/lucia987/cacheword.git
 [submodule "external/AndroidPinning"]
 	path = external/AndroidPinning
 	url = https://github.com/moxie0/AndroidPinning.git
