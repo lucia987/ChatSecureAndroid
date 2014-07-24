@@ -30,8 +30,8 @@ import android.widget.ViewFlipper;
 
 import com.actionbarsherlock.app.SherlockActivity;
 
-import jni.PrivateData;
-import jni.PrivateDataHandler;
+import jni.TEEClient;
+import jni.TEEObject;
 
 public class LockScreenActivity extends SherlockActivity implements ICacheWordSubscriber {
     private static final String TAG = "LockScreenActivity";
@@ -57,8 +57,8 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     /* Added by Lucia */
     private Button mNewPassphraseBtn;
     private Button mConfirmNewPassphraseBtn;
-    private PrivateDataHandler mNewPassphraseHandler = PrivateData.add(new String(""));
-    private PrivateDataHandler mConfirmPassphraseHandler = PrivateData.add(new String(""));
+    private TEEObject mNewPassphraseTEEObject = TEEClient.newTEEObjectFromData(new String(""));
+    private TEEObject mConfirmPassphraseTEEObject = TEEClient.newTEEObjectFromData(new String(""));
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -88,9 +88,9 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         mNewPassphraseBtn.setOnClickListener(new OnClickListener () {
             @Override
             public void onClick(View v) {
-              mNewPassphraseHandler = PrivateData.
-                      add(mNewPassphrase.getText().toString());
-              mNewPassphrase.setText(mNewPassphraseHandler.stringHashCode());
+              mNewPassphraseTEEObject = TEEClient.
+                      newTEEObjectFromData(mNewPassphrase.getText().toString());
+              mNewPassphrase.setText(mNewPassphraseTEEObject.stringHashCode());
             }
         });
         /* End of Added by Lucia */
@@ -102,9 +102,9 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
 
             @Override
             public void onClick(View v) {
-                mConfirmPassphraseHandler = PrivateData.
-                        add(mConfirmNewPassphrase.getText().toString());
-                mConfirmNewPassphrase.setText(mConfirmPassphraseHandler.stringHashCode());
+                mConfirmPassphraseTEEObject = TEEClient.
+                        newTEEObjectFromData(mConfirmNewPassphrase.getText().toString());
+                mConfirmNewPassphrase.setText(mConfirmPassphraseTEEObject.stringHashCode());
             }
         });
         /* End of Added by Lucia */
@@ -151,8 +151,8 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     }
     */
     private boolean newEqualsConfirmation() {
-        return PrivateData.
-                LockScreenActivity$newEqualsConfirmation(mNewPassphraseHandler, mConfirmPassphraseHandler);
+        return TEEClient.
+                LockScreenActivity$newEqualsConfirmation(mNewPassphraseTEEObject, mConfirmPassphraseTEEObject);
     }
 
     private void showValidationError() {
@@ -178,9 +178,9 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     }
     */
     private boolean isPasswordValid() {
-        PrivateDataHandler newHandler = PrivateData.
-                LockScreenActivity$isPasswordValid(mNewPassphraseHandler);
-        return validatePassword(newHandler);
+        TEEObject teeObj = TEEClient.
+                LockScreenActivity$isPasswordValid(mNewPassphraseTEEObject);
+        return validatePassword(teeObj);
     }
 
     /*
@@ -189,8 +189,8 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     }
      */
     private boolean isPasswordFieldEmpty() {
-        return PrivateData.LockScreenActivity$isPasswordFieldEmpty(
-                mNewPassphraseHandler);
+        return TEEClient.LockScreenActivity$isPasswordFieldEmpty(
+                mNewPassphraseTEEObject);
     }
     
     /*
@@ -199,8 +199,8 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     }
      */
     private boolean isConfirmationFieldEmpty() {
-        return PrivateData.LockScreenActivity$isConfirmationFieldEmpty(
-                mConfirmPassphraseHandler);
+        return TEEClient.LockScreenActivity$isConfirmationFieldEmpty(
+                mConfirmPassphraseTEEObject);
     }
     
     /*
@@ -226,8 +226,8 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
     */
     private void initializeWithPassphrase() {
         try {
-            PrivateDataHandler passphrase = mNewPassphraseHandler;
-            if (PrivateData.
+            TEEObject passphrase = mNewPassphraseTEEObject;
+            if (TEEClient.
                     LockScreenActivity$initializeWithPassphrase1(passphrase)) {
                 // Create DB with empty passphrase
                 if (Imps.setEmptyPassphrase(this, false)) {
@@ -237,7 +237,7 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
                     // TODO failed
                 }   
             } else {
-                PrivateDataHandler handler = PrivateData.
+                TEEObject handler = TEEClient.
                         LockScreenActivity$initializeWithPassphrase2(passphrase);
                 mCacheWord.setPassphrase(handler);
             }
@@ -392,9 +392,9 @@ public class LockScreenActivity extends SherlockActivity implements ICacheWordSu
         return true;
     }
     */
-    private boolean validatePassword(PrivateDataHandler handler)
+    private boolean validatePassword(TEEObject handler)
     {
-        if (PrivateData.
+        if (TEEClient.
                 LockScreenActivity$validatePassword(handler, MIN_PASS_LENGTH))
         {
             mPasswordError = getString(R.string.pass_err_length);
